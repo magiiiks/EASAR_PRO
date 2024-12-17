@@ -4,7 +4,7 @@
 
 % loading the dataset
 
-folder_path = "./DSD100subset/Mixtures/Dev";
+folder_path = "../DSD100subset/Mixtures/Dev";
 file_pattern = fullfile(folder_path, '*.wav'); 
 
 audio_files = dir(folder_path);
@@ -21,5 +21,8 @@ for i = 1:num_files
     file_path = fullfile(folder_path, audio_files(i).name,'/mixture.wav');
     [audio_data{i}, sample_rates(i)] = audioread(file_path);
 end
+
+
+
 
 
