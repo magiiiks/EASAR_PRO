@@ -41,7 +41,7 @@ for i = 1:num_files
     % in windows i thing only needed . and .. so (3:end)
     audio_files1 = audio_files1(3:end);
     for j = 1:length(audio_files1)
-        file_path1 = fullfile(folder_path, audio_files(i).name,audio_files1(j).name)
+        file_path1 = fullfile(folder_path, audio_files(i).name,audio_files1(j).name);
         [audio_data_raw{i,j}, sample_rates_raw(i,j)] = audioread(file_path1);
     end
 end
@@ -66,25 +66,20 @@ legend('Desired Signal', 'Estimated Signal');
 title('Wiener-Hopf Filter Result');
 
 %%
+x = audio_data{1};
+fs = sample_rates(1);
+% Perform LPC analysis
+[residual, lpc_coeffs] = lpc_analysis(x, 12, 3200, 1600);
 
-% Generate mixed signals (example)
-t = 0:0.001:1;
-s1 = sin(2*pi*10*t);
-s2 = sin(2*pi*10*t);
-A = [0.8 0.2; 0.3 0.7];
-mixed_signals = A * [s1; s2];
+% Apply blind source separation to the residual
+[W, separated_residuals] = muk_bss(residual', 2, 100);
 
-% Apply the combined method
-order = 10;
-[separated_signals, prediction_coeffs] = levinsonDurbinBss(mixed_signals, order);
+% Reconstruct separated sources
+source1 = lpc_synthesis(separated_residuals(1, :), lpc_coeffs, 3200, 1600);
+source2 = lpc_synthesis(separated_residuals(2, :), lpc_coeffs, 3200, 1600);
 
-% Plot results
-figure;
-subplot(2,2,1); plot(t, mixed_signals(1,:)); title('Mixed Signal 1');
-subplot(2,2,2); plot(t, mixed_signals(2,:)); title('Mixed Signal 2');
-subplot(2,2,3); plot(t, separated_signals(1,:)); title('Separated Signal 1');
-subplot(2,2,4); plot(t, separated_signals(2,:)); title('Separated Signal 2');
-
-
-
-
+% Play or save separated sources
+sound(source1, fs);
+sound(source2, fs);
+%audiowrite('source1.wav', source1, fs);
+%audiowrite('source2.wav', source2, fs);
