@@ -52,13 +52,20 @@ end
 
 
 x = audio_data{1}; % Input signal (e.g., noisy signal)
-d = audio_data_raw{1,2}; % Desired signal
+d = audio_data_raw{1,4}; % Desired signal
+
+sound(x, sample_rates(1));
+pause(length(x)/fs + 1);
 
 % Apply Wiener-Hopf filter
-N = 50; % Filter order
+N = 64; % Filter order
 [w, y_est] = wienerHopf(x, d, N);
+
 n = 1:length(d);
 n1 = 1:length(y_est);
+
+sound(y_est, sample_rates(1));
+
 % Plot results
 figure;
 plot(n, d, 'b', n1, y_est, 'r');
