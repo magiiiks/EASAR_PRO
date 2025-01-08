@@ -3,6 +3,7 @@ function [w, y_est] = wienerHopf(x, d, N)
     % d: desired signal
     % N: filter order
     
+    
     L = length(x); % Length of the input signal
     
     % Compute autocorrelation matrix R
