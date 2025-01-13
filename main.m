@@ -68,7 +68,7 @@ x = audio_data_raw{1,4} + audio_data_raw{1,2}; % blending 2 audio files
 %x = audio_data{2};
 x = x / max(abs(x(:))); % normalize to prevent clipping
 
-d = audio_data_raw{2,4}; % Desired signal
+d = audio_data_raw{1,4}; % Desired signal
 d = d / max(abs(d(:))); %Normalize to prevent clipping
 
 % Apply Wiener-Hopf filter
@@ -77,7 +77,7 @@ N = 64; % Filter order
 %APPLYING WIENER-HOPF FILTERING
 fprintf('Wiener-Hopf filtering \n');
 tic;
-%[w, y_est] = wienerHopf(x, d, N);
+[w, y_est] = wienerHopf(x, d, N);
 elapsed_time = toc;
 fprintf('Wiener-Hopf took: %u \n', elapsed_time);
 
