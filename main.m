@@ -62,13 +62,12 @@ x = x(1:L);
 d = d(1:L);
 
 % Apply Wiener-Hopf filter
-N = round(L / 50); % Filter order
+N = 64; % Filter order
 
 fprintf('Wiener-Hopf filtering');
 tic;
 
 [w, y_est] = wienerHopf(x, d, N);
-[w, y_est] = wienerHopf(y_est, d, N); % if we do it a second time the results appear to be better
 elapsed_time = toc;
 fprintf(['Wiener-Hopf took', elapsed_time]);
 
