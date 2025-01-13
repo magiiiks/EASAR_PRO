@@ -61,12 +61,13 @@ d = d / max(abs(d(:))); %Normalize to prevent clipping
 
 %APPLYING LOW-PASS FILTER (3kHz).
 fcut = 3000;
-[b, a] = butter(4, fcut / (sampling_rate / 2), 'low');
-x_filtered = filter(b, a, x);
-d_filtered = filter(b, a, d);
+x_filtered = lowpass(x, fcut, sampling_rate);
 
-x_filtered = x_filtered / max(abs(x_filtered));
-d_filtered = d_filtered / max(abs(d_filtered));
+%x_filtered = filter(b, a, x);
+%d_filtered = filter(b, a, d);
+
+%x_filtered = x_filtered / max(abs(x_filtered));
+%d_filtered = d_filtered / max(abs(d_filtered));
 
 
 % Apply Wiener-Hopf filter
@@ -75,7 +76,7 @@ N = 64; % Filter order
 %APPLYING WIENER-HOPF FILTERING
 fprintf('Wiener-Hopf filtering \n');
 tic;
-[w, y_est] = wienerHopf(x_filtered, d_filtered, N);
+[w, y_est] = wienerHopf(x_filtered, d, N);
 elapsed_time = toc;
 fprintf('Wiener-Hopf took: %u \n', elapsed_time);
 
