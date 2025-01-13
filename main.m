@@ -58,23 +58,6 @@ x = x / max(abs(x(:))); % normalize to prevent clipping
 d = audio_data_raw{2,4}; % Desired signal
 d = d / max(abs(d(:))); %Normalize to prevent clipping
 
-
-%APPLYING LOW-PASS FILTER (3kHz).
-% Define filter parameters
-lowFreq = 250;  % Lower cutoff frequency in Hz
-highFreq = 2000;  % Upper cutoff frequency in Hz
-filterOrder = 6;  % Filter order
-
-% Normalize the frequencies
-nyquist = sampling_rate/2;
-Wn = [lowFreq highFreq] / nyquist;
-
-% Design the bandpass filter
-[b, a] = butter(filterOrder, Wn, 'bandpass');
-
-% Apply the filter
-x_filtered = filtfilt(b, a, x);
-
 %x_filtered = filter(b, a, x);
 %d_filtered = filter(b, a, d);
 
@@ -95,10 +78,26 @@ fprintf('Wiener-Hopf took: %u \n', elapsed_time);
 %Renormalizing the filtered signal in case it has peaked.
 y_est = y_est / max(abs(y_est));
 
+%APPLYING BAND-PASS FILTER (3kHz).
+% Define filter parameters
+lowFreq = 150;  % Lower cutoff frequency in Hz
+highFreq = 2000;  % Upper cutoff frequency in Hz
+filterOrder = 4;  % Filter order
+
+% Normalize the frequencies
+nyquist = sampling_rate/2;
+Wn = [lowFreq highFreq] / nyquist;
+
+% Design the bandpass filter
+[b, a] = butter(filterOrder, Wn, 'bandpass');
+
+% Apply the filter
+y_est = filtfilt(b, a, y_est);
+
 %Hearing the blended original.
 fprintf('Playing the unfiltered blended one...\n');
 num_samples = duration_seconds * sampling_rate;
-x_short = x_filtered(1:min(num_samples, length(x_filtered)));
+x_short = x(1:min(num_samples, length(x)));
 
 sound(x_short, sampling_rate);
 pause(length(x_short) / sampling_rate + 1);
