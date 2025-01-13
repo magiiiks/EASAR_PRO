@@ -50,17 +50,27 @@ fprintf('Pre-Data sorting ended');
 % Generate example signals
 duration_seconds = 7;
 
-
 % x = audio_data{1}; % Input signal (e.g., noisy signal)
 x = audio_data_raw{1,4} + audio_data_raw{1,2}; % blending 2 audio files
 x = x / max(abs(x(:))); % normalize to prevent clipping
 
 d = audio_data_raw{1,4}; % Desired signal
+d = d / max(abs(d(:))); %Normalize to prevent clipping
+
+L = min(length(x), length(d));
+x = x(1:L);
+d = d(1:L);
 
 % Apply Wiener-Hopf filter
-N = 64; % Filter order
+N = round(L / 50); % Filter order
+
+fprintf('Wiener-Hopf filtering');
+tic;
+
 [w, y_est] = wienerHopf(x, d, N);
 [w, y_est] = wienerHopf(y_est, d, N); % if we do it a second time the results appear to be better
+elapsed_time = toc;
+fprintf(['Wiener-Hopf took', elapsed_time]);
 
 %Hearing the blended original.
 fprintf('Playing the unfiltered blended one...\n');
