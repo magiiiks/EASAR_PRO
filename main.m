@@ -27,7 +27,7 @@ audio_files = dir(folder_path);
 
 % this is to delete the directory . .. and .DS_files(compulsory in mac)
 % in windows i thing only needed . and .. so (3:end)
-audio_files = audio_files(4:end);
+audio_files = audio_files(3:end);
 
 num_files = length(audio_files);
 audio_data_raw = cell(num_files, 4);
@@ -51,15 +51,19 @@ end
 % Generate example signals
 
 
-x = audio_data{1}; % Input signal (e.g., noisy signal)
+% x = audio_data{1}; % Input signal (e.g., noisy signal)
+x = audio_data_raw{1,4} + audio_data_raw{1,1}; % blending 2 audio files
+x = x / max(abs(x(:))); % normalize to prevent clipping
+
 d = audio_data_raw{1,4}; % Desired signal
 
 sound(x, sample_rates(1));
-pause(length(x)/fs + 1);
+%pause(length(x)/sample_rates(1) + 1);
 
 % Apply Wiener-Hopf filter
 N = 64; % Filter order
 [w, y_est] = wienerHopf(x, d, N);
+[w, y_est] = wienerHopf(y_est, d, N); % if we do it a second time the results appear to be better
 
 n = 1:length(d);
 n1 = 1:length(y_est);
@@ -73,20 +77,35 @@ legend('Desired Signal', 'Estimated Signal');
 title('Wiener-Hopf Filter Result');
 
 %%
-x = audio_data{1};
-fs = sample_rates(1);
-% Perform LPC analysis
-[residual, lpc_coeffs] = lpc_analysis(x, 12, 3200, 1600);
+frame_length = 1024;
+p = 10; % AR model order
+n_frames = floor(length(x) / frame_length);
+ar_coeffs = zeros(p+1, n_frames);
 
-% Apply blind source separation to the residual
-[W, separated_residuals] = muk_bss(residual', 2, 100);
+for i = 1:n_frames
+    frame = x((i-1)*frame_length + 1 : i*frame_length);
+    r = xcorr(frame, p, 'biased');
+    a = levinsonDurbin(r(p+1:end));
+    ar_coeffs(:, i) = a;
+end
 
-% Reconstruct separated sources
-source1 = lpc_synthesis(separated_residuals(1, :), lpc_coeffs, 3200, 1600);
-source2 = lpc_synthesis(separated_residuals(2, :), lpc_coeffs, 3200, 1600);
+% Perform blind source separation
+B = x(1:n_frames*frame_length);
+B = reshape(B, frame_length, n_frames)';
+[S, ~, ~] = fastica(B, 2);
 
-% Play or save separated sources
-sound(source1, fs);
-sound(source2, fs);
-%audiowrite('source1.wav', source1, fs);
-%audiowrite('source2.wav', source2, fs);
+% Reconstruct separated signals
+reshaped = reshape(S(:, 1), 1, []);
+%s2 = reshape(S(:, 2), 1, []);
+
+% Apply AR model to enhance separated signals
+reshaped = filter(1, ar_coeffs(:, 1), reshaped);
+%enhanced_s2 = filter(1, ar_coeffs(:, 2), s2);
+
+% Normalize and play results
+reshaped = reshaped / max(abs(reshaped));
+%enhanced_s2 = enhanced_s2 / max(abs(enhanced_s2));
+
+sound(enhanced_s1, sample_rates{1});
+%pause(length(enhanced_s1)/fs1);
+%sound(enhanced_s2, fs1);
