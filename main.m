@@ -42,7 +42,7 @@ for i = 1:num_files
     end
 end
 
-fprintf('Pre-Data sorting ended');
+fprintf('Pre-Data sorting ended\n');
 
 %%
 
@@ -51,20 +51,31 @@ fprintf('Pre-Data sorting ended');
 duration_seconds = 7;
 
 % x = audio_data{1}; % Input signal (e.g., noisy signal)
-x = audio_data_raw{2,4} + audio_data_raw{2,2}; % blending 2 audio files
+x = audio_data_raw{1,4} + audio_data_raw{1,2}; % blending 2 audio files
 %x = audio_data{2};
 x = x / max(abs(x(:))); % normalize to prevent clipping
 
 d = audio_data_raw{2,4}; % Desired signal
 d = d / max(abs(d(:))); %Normalize to prevent clipping
 
+
+%APPLYING LOW-PASS FILTER (3kHz).
+fcut = 3000;
+[b, a] = butter(4, fcut / (sampling_rate / 2), 'low');
+x_filtered = filter(b, a, x);
+d_filtered = filter(b, a, d);
+
+x_filtered = x_filtered / max(abs(x_filtered));
+d_filtered = d_filtered / max(abs(d_filtered));
+
+
 % Apply Wiener-Hopf filter
 N = 64; % Filter order
 
-%APPLYING THE ALGORITHM
+%APPLYING WIENER-HOPF FILTERING
 fprintf('Wiener-Hopf filtering \n');
 tic;
-[w, y_est] = wienerHopf(x, d, N);
+[w, y_est] = wienerHopf(x_filtered, d_filtered, N);
 elapsed_time = toc;
 fprintf('Wiener-Hopf took: %u \n', elapsed_time);
 
@@ -74,7 +85,7 @@ y_est = y_est / max(abs(y_est));
 %Hearing the blended original.
 fprintf('Playing the unfiltered blended one...\n');
 num_samples = duration_seconds * sampling_rate;
-x_short = x(1:min(num_samples, length(x)));
+x_short = x(1:min(num_samples, length(x_filtered)));
 
 sound(x_short, sampling_rate);
 pause(length(x_short) / sampling_rate + 1);
@@ -82,15 +93,16 @@ pause(length(x_short) / sampling_rate + 1);
 %Hearing the filtered one.
 fprintf('Playing the filtered signal...\n');
 y_est_short = y_est(1:min(num_samples, length(y_est)));
+
 sound(y_est_short, sampling_rate);
 pause(length(y_est_short) / sampling_rate + 1);
 
-n = 1:length(d);
+n = 1:length(d_filtered);
 n1 = 1:length(y_est);
 
 % Plot results
 figure;
-plot(n, d, 'b', n1, y_est, 'r');
+plot(n, d_filtered, 'b', n1, y_est, 'r');
 legend('Desired Signal', 'Estimated Signal');
 title('Wiener-Hopf Filter Result');
 
