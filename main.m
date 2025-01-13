@@ -45,6 +45,19 @@ end
 fprintf('Pre-Data sorting ended\n');
 
 %%
+%APPLYING BAND-PASS FILTER (3kHz).
+% Define filter parameters
+lowFreq = 100;  % Lower cutoff frequency in Hz
+highFreq = 4000;  % Upper cutoff frequency in Hz
+filterOrder = 4;  % Filter order
+
+% Normalize the frequencies
+nyquist = sampling_rate/2;
+Wn = [lowFreq highFreq] / nyquist;
+
+% Design the bandpass filter
+[b, a] = butter(filterOrder, Wn, 'bandpass');
+
 
 %Wiener-Hopf
 % Generate example signals
@@ -58,42 +71,38 @@ x = x / max(abs(x(:))); % normalize to prevent clipping
 d = audio_data_raw{2,4}; % Desired signal
 d = d / max(abs(d(:))); %Normalize to prevent clipping
 
-%x_filtered = filter(b, a, x);
-%d_filtered = filter(b, a, d);
-
-%x_filtered = x_filtered / max(abs(x_filtered));
-%d_filtered = d_filtered / max(abs(d_filtered));
-
-
 % Apply Wiener-Hopf filter
 N = 64; % Filter order
 
 %APPLYING WIENER-HOPF FILTERING
 fprintf('Wiener-Hopf filtering \n');
 tic;
-[w, y_est] = wienerHopf(x_filtered, d, N);
+%[w, y_est] = wienerHopf(x, d, N);
 elapsed_time = toc;
 fprintf('Wiener-Hopf took: %u \n', elapsed_time);
 
 %Renormalizing the filtered signal in case it has peaked.
 y_est = y_est / max(abs(y_est));
 
-%APPLYING BAND-PASS FILTER (3kHz).
-% Define filter parameters
-lowFreq = 150;  % Lower cutoff frequency in Hz
-highFreq = 2000;  % Upper cutoff frequency in Hz
-filterOrder = 4;  % Filter order
 
-% Normalize the frequencies
-nyquist = sampling_rate/2;
-Wn = [lowFreq highFreq] / nyquist;
+if length(y_est) ~= length(d)
+    error('Las señales y_est y d deben tener la misma longitud');
+end
 
-% Design the bandpass filter
-[b, a] = butter(filterOrder, Wn, 'bandpass');
+%APLICAR FILTRO LMS ADAPTATIVO
+% Refinar con filtro LMS
+mu = 0.01;            % Tasa de aprendizaje
+lms_filter_order = 64; % Orden del filtro LMS
+adapt_iter = 2;        % Número de iteraciones LMS
 
-% Apply the filter
-y_est = filtfilt(b, a, y_est);
+fprintf('Refinando con filtro LMS...\n');
+[y_est_refined, lms_weights] = lmsFilter(y_est, d, mu, lms_filter_order, adapt_iter);
 
+% Renormalizar la señal refinada
+y_est_refined = y_est_refined / max(abs(y_est_refined));
+
+
+%LISTENING THE DEMIXED AUDIO
 %Hearing the blended original.
 fprintf('Playing the unfiltered blended one...\n');
 num_samples = duration_seconds * sampling_rate;
