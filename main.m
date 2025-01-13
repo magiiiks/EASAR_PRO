@@ -51,27 +51,28 @@ fprintf('Pre-Data sorting ended');
 duration_seconds = 7;
 
 % x = audio_data{1}; % Input signal (e.g., noisy signal)
-x = audio_data_raw{1,4} + audio_data_raw{1,2}; % blending 2 audio files
+x = audio_data_raw{2,4} + audio_data_raw{2,2}; % blending 2 audio files
+%x = audio_data{2};
 x = x / max(abs(x(:))); % normalize to prevent clipping
 
-d = audio_data_raw{1,4}; % Desired signal
+d = audio_data_raw{2,4}; % Desired signal
 d = d / max(abs(d(:))); %Normalize to prevent clipping
 
 % Apply Wiener-Hopf filter
 N = 64; % Filter order
 
 %APPLYING THE ALGORITHM
-fprintf('Wiener-Hopf filtering');
+fprintf('Wiener-Hopf filtering \n');
 tic;
 [w, y_est] = wienerHopf(x, d, N);
 elapsed_time = toc;
-fprintf(['\nWiener-Hopf took', elapsed_time]);
+fprintf('Wiener-Hopf took: %u \n', elapsed_time);
 
 %Renormalizing the filtered signal in case it has peaked.
 y_est = y_est / max(abs(y_est));
 
 %Hearing the blended original.
-fprintf('\nPlaying the unfiltered blended one...');
+fprintf('Playing the unfiltered blended one...\n');
 num_samples = duration_seconds * sampling_rate;
 x_short = x(1:min(num_samples, length(x)));
 
@@ -79,7 +80,7 @@ sound(x_short, sampling_rate);
 pause(length(x_short) / sampling_rate + 1);
 
 %Hearing the filtered one.
-fprintf('\nPlaying the filtered signal...');
+fprintf('Playing the filtered signal...\n');
 y_est_short = y_est(1:min(num_samples, length(y_est)));
 sound(y_est_short, sampling_rate);
 pause(length(y_est_short) / sampling_rate + 1);
