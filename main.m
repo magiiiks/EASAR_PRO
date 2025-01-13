@@ -57,33 +57,32 @@ x = x / max(abs(x(:))); % normalize to prevent clipping
 d = audio_data_raw{1,4}; % Desired signal
 d = d / max(abs(d(:))); %Normalize to prevent clipping
 
-L = min(length(x), length(d));
-x = x(1:L);
-d = d(1:L);
-
 % Apply Wiener-Hopf filter
 N = 64; % Filter order
 
+%APPLYING THE ALGORITHM
 fprintf('Wiener-Hopf filtering');
 tic;
-
 [w, y_est] = wienerHopf(x, d, N);
 elapsed_time = toc;
-fprintf(['Wiener-Hopf took', elapsed_time]);
+fprintf(['\nWiener-Hopf took', elapsed_time]);
+
+%Renormalizing the filtered signal in case it has peaked.
+y_est = y_est / max(abs(y_est));
 
 %Hearing the blended original.
-fprintf('Playing the unfiltered blended one...\n');
-num_samples = duration_seconds * sample_rates(1);
+fprintf('\nPlaying the unfiltered blended one...');
+num_samples = duration_seconds * sampling_rate;
 x_short = x(1:min(num_samples, length(x)));
 
-sound(x_short, sample_rates(1));
-pause(length(x_short) / sample_rates(1) + 1);
+sound(x_short, sampling_rate);
+pause(length(x_short) / sampling_rate + 1);
 
 %Hearing the filtered one.
-fprintf('Playing the filtered signal...\n');
+fprintf('\nPlaying the filtered signal...');
 y_est_short = y_est(1:min(num_samples, length(y_est)));
-sound(y_est_short, sample_rates(1));
-pause(length(y_est_short) / sample_rates(1) + 1);
+sound(y_est_short, sampling_rate);
+pause(length(y_est_short) / sampling_rate + 1);
 
 n = 1:length(d);
 n1 = 1:length(y_est);
