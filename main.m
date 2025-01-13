@@ -60,8 +60,20 @@ d = d / max(abs(d(:))); %Normalize to prevent clipping
 
 
 %APPLYING LOW-PASS FILTER (3kHz).
-fcut = 3000;
-x_filtered = lowpass(x, fcut, sampling_rate);
+% Define filter parameters
+lowFreq = 250;  % Lower cutoff frequency in Hz
+highFreq = 2000;  % Upper cutoff frequency in Hz
+filterOrder = 6;  % Filter order
+
+% Normalize the frequencies
+nyquist = sampling_rate/2;
+Wn = [lowFreq highFreq] / nyquist;
+
+% Design the bandpass filter
+[b, a] = butter(filterOrder, Wn, 'bandpass');
+
+% Apply the filter
+x_filtered = filtfilt(b, a, x);
 
 %x_filtered = filter(b, a, x);
 %d_filtered = filter(b, a, d);
@@ -86,7 +98,7 @@ y_est = y_est / max(abs(y_est));
 %Hearing the blended original.
 fprintf('Playing the unfiltered blended one...\n');
 num_samples = duration_seconds * sampling_rate;
-x_short = x(1:min(num_samples, length(x_filtered)));
+x_short = x_filtered(1:min(num_samples, length(x_filtered)));
 
 sound(x_short, sampling_rate);
 pause(length(x_short) / sampling_rate + 1);
@@ -98,12 +110,12 @@ y_est_short = y_est(1:min(num_samples, length(y_est)));
 sound(y_est_short, sampling_rate);
 pause(length(y_est_short) / sampling_rate + 1);
 
-n = 1:length(d_filtered);
+n = 1:length(d);
 n1 = 1:length(y_est);
 
 % Plot results
 figure;
-plot(n, d_filtered, 'b', n1, y_est, 'r');
+plot(n, d, 'b', n1, y_est, 'r');
 legend('Desired Signal', 'Estimated Signal');
 title('Wiener-Hopf Filter Result');
 
