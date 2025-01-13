@@ -113,7 +113,7 @@ pause(length(x_short) / sampling_rate + 1);
 
 %Hearing the filtered one.
 fprintf('Playing the filtered signal...\n');
-y_est_short = y_est(1:min(num_samples, length(y_est)));
+y_est_short = y_est_refined(1:min(num_samples, length(y_est_refined)));
 
 sound(y_est_short, sampling_rate);
 pause(length(y_est_short) / sampling_rate + 1);
@@ -123,7 +123,7 @@ n1 = 1:length(y_est);
 
 % Plot results
 figure;
-plot(n, d, 'b', n1, y_est, 'r');
+plot(n, d, 'b', n1, y_est_refined, 'r');
 legend('Desired Signal', 'Estimated Signal');
 title('Wiener-Hopf Filter Result');
 
