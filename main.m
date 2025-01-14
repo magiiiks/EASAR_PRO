@@ -1,7 +1,8 @@
+%% DEMIXING OF AUDIO SIGNALS. BY MAGÍ & CARLOS RUEDA. EASAR
 
-%%%%%%%%%%%%%%%%%%%%%%%%
-% 1. Pre data sorting  %
-%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 1. Pre data processing  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % loading the dataset
 folder_path = "../DSD100subset/Mixtures/Dev";
@@ -23,7 +24,7 @@ end
 folder_path = "../DSD100/Sources/Dev";
 audio_files = dir(folder_path);
 
-% this is to delete the directory . .. and .DS_files(compulsory in mac)
+% This is to delete the directory . .. and .DS_files(compulsory in mac)
 % in windows i thing only needed . and .. so (3:end)
 audio_files = audio_files(4:end);
 
@@ -34,7 +35,7 @@ for i = 1:num_files
     file_path = fullfile(folder_path, audio_files(i).name);
     audio_files1 = dir(file_path);
 
-    % this is to delete the directory . .. and .DS_files(compulsory in mac)
+    % This is to delete the directory . .. and .DS_files(compulsory in mac)
     % in windows i thing only needed . and .. so (3:end)
     audio_files1 = audio_files1(3:end);
     for j = 1:length(audio_files1)
@@ -45,20 +46,28 @@ end
 
 fprintf('Pre-Data sorting ended\n');
 
-%%
+%% Main algorithm.
 
+%%%%%%%%%%%%%%%%%%%%%
+% 2. MAIN ALGORITHM %
+%%%%%%%%%%%%%%%%%%%%%
+
+% Itering all the audio archives.
 for i = 1:length(audio_files)
-    x = audio_data_raw{i,4} + audio_data_raw{i,2}; % blending 2 audio files voice and drums
-    x = x / max(abs(x(:))); % normalize to prevent clipping
-
-    d = audio_data_raw{i,4}; % Desired signal
-    d = d / max(abs(d(:))); %Normalize to prevent clipping
-
-    fprintf('Wiener-Hopf filtering: %d \n',i);
+    % Blending the drums+vocals audio files and normalizing it to prevent
+    % clipping.
+    x = audio_data_raw{i,4} + audio_data_raw{i,2}; 
+    x = x / max(abs(x(:)));
+    
+    % Getting the desired signal and normalizing it to prevent clipping
+    d = audio_data_raw{i,4};
+    d = d / max(abs(d(:)));
+    
+    fprintf('Main algorithm started... %d \n',i);
     filtering(x,d,sampling_rate, audio_files(i).name)
 end
 
-%% 1 execution
+%% Primitive testing.
 
 x = audio_data_raw{i,4} + audio_data_raw{i,2}; % blending 2 audio files voice and drums
 x = x / max(abs(x(:))); % normalize to prevent clipping
