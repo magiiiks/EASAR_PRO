@@ -4,6 +4,7 @@ function filtering_sound(x, d, sampling_rate, name)
     lowFreq = 125;  % Lower cutoff frequency in Hz
     highFreq = 3000;  % Upper cutoff frequency in Hz
     filterOrder = 4;  % Filter order
+    duration_seconds = 7; %DUration in seconds
 
     % Normalize the frequencies
     nyquist = sampling_rate/2;

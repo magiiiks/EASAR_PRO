@@ -63,5 +63,6 @@ function filtering(x, d, sampling_rate, name)
 
     ax = gca;
     exportgraphics(ax, path_plot, 'Resolution', 300);
+    close;
     audiowrite(path_song, y_est, sampling_rate);
 end
