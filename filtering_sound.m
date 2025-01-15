@@ -45,7 +45,7 @@ function filtering_sound(x, d, sampling_rate, name)
 
     %Hearing the filtered one.
     fprintf('Playing the filtered signal...\n');
-    y_est_short = y_est_refined(1:min(num_samples, length(y_est_refined)));
+    y_est_short = y_est(1:min(num_samples, length(y_est)));
 
     sound(y_est_short, sampling_rate);
     pause(length(y_est_short) / sampling_rate + 1);
@@ -58,4 +58,20 @@ function filtering_sound(x, d, sampling_rate, name)
     plot(n, d, 'b', n1, y_est, 'r');
     legend('Desired Signal', 'Estimated Signal');
     title('Wiener-Hopf Filter Result');
+    
+    % ADDING SPECTROGRAMS
+    % Compute spectrogram for x (blended signal)
+    figure;
+    subplot(2, 1, 1);
+    x = x(:,1);
+    spectrogram(x, 256, 250, 256, sampling_rate, 'yaxis');
+    title('Spectrogram of x (Blended Signal)');
+    colorbar;
+
+    % Compute spectrogram for y_est (filtered signal)
+    subplot(2, 1, 2);
+    spectrogram(y_est, 256, 250, 256, sampling_rate, 'yaxis');
+    title('Spectrogram of y_est (Filtered Signal)');
+    colorbar;
+
 end

@@ -65,4 +65,28 @@ function filtering(x, d, sampling_rate, name)
     exportgraphics(ax, path_plot, 'Resolution', 300);
     close;
     audiowrite(path_song, y_est, sampling_rate);
+    
+        % ADDING SPECTROGRAMS
+    % Compute spectrogram for x (blended signal)
+    figure;
+    x = x(:,1);
+    spectrogram(x, 256, 250, 256, sampling_rate, 'yaxis');
+    title('Spectrogram of Blended Signal (vocal + drums)');
+    colorbar;
+    
+    path_spect = strcat('../results/plots/',name, '_spect-blend.png');
+    ax = gca;
+    exportgraphics(ax, path_spect, 'Resolution', 300);
+    close;
+
+    % Compute spectrogram for y_est (filtered signal)
+    figure;
+    spectrogram(y_est, 256, 250, 256, sampling_rate, 'yaxis');
+    title('Spectrogram of Filtered Signal (vocal and deleted drums)');
+    colorbar;
+    
+    path_spect = strcat('../results/plots/',name, '_spect-filter.png');
+    ax = gca;
+    exportgraphics(ax, path_spect, 'Resolution', 300);
+    close;
 end
